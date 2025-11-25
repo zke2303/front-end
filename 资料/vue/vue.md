@@ -583,3 +583,207 @@ computed: {
     
 </body>
 ```
+
+
+
+## 组件基础
+
+组件是可复用的 Vue 实例，且带有一个名字。
+
+
+
+基本示例：
+
+```js
+// 定义一个名为 button-counter 的新组件
+Vue.component('button-counter', {
+  data: function () {
+    return {
+      count: 0
+    }
+  },
+  template: '<button v-on:click="count++">You clicked me {{ count }} times.</button>'
+})
+```
+
+在这个例子中是 `<button-counter>`。我们可以在一个通过 `new Vue` 创建的 Vue 根实例中，把这个组件作为自定义元素来使用：
+
+```html
+<div id="components-demo">
+  <button-counter></button-counter>
+</div>
+```
+
+```js
+new Vue({ el: '#components-demo' })
+```
+
+![image-20251125214404185](assets/image-20251125214404185.png)
+
+> 因为组件是可复用的 Vue 实例，所以它们与 `new Vue` 接收相同的选项，例如 `data`、`computed`、`watch`、`methods` 以及生命周期钩子等。仅有的例外是像 `el` 这样根实例特有的选项。
+>
+> 在组件中的`data`不能和`Vue`实例中一样定义， `data` 必须是一个函数，这个函数返回一个`data`对象，而不能直接定义一个对象。
+>
+> `template`中的内容就是组件的模版。
+
+
+
+### 组件的复用
+
+你可以将组件进行任意次数的复用：
+
+```html
+<div id="components-demo">
+  <button-counter></button-counter>
+  <button-counter></button-counter>
+  <button-counter></button-counter>
+</div>
+```
+
+注意当点击按钮时，每个组件都会各自独立维护它的 `count`。因为你每用一次组件，就会有一个它的新**实例**被创建。
+
+`data` 必须是一个函数
+
+当我们定义这个 `<button-counter>` 组件时，你可能会发现它的 `data` 并不是像这样直接提供一个对象：
+
+```js
+data: {
+  count: 0
+}
+```
+
+取而代之的是，**一个组件的 `data` 选项必须是一个函数**，因此每个实例可以维护一份被返回对象的独立的拷贝：
+
+```js
+data: function () {
+  return {
+    count: 0
+  }
+}
+```
+
+如果 Vue 没有这条规则，点击一个按钮就可能会像如下代码一样影响到*其它所有实例*：
+
+
+
+
+
+### 组件的组织
+
+通常一个应用会以一棵嵌套的组件树的形式来组织：
+
+![Component Tree](assets/components.png)
+
+例如，你可能会有页头、侧边栏、内容区等组件，每个组件又包含了其它的像导航链接、博文之类的组件。
+
+为了能在模板中使用，这些组件必须先注册以便 Vue 能够识别。这里有两种组件的注册类型：**全局注册**和**局部注册**。至此，我们的组件都只是通过 `Vue.component` 全局注册的：
+
+```js
+Vue.component('my-component-name', {
+  // ... options ...
+})
+```
+
+全局注册的组件可以用在其被注册之后的任何 (通过 `new Vue`) 新创建的 Vue 根实例，也包括其组件树中的所有子组件的模板中。
+
+到目前为止，关于组件注册你需要了解的就这些了，如果你阅读完本页内容并掌握了它的内容，我们会推荐你再回来把[组件注册](https://v2.cn.vuejs.org/v2/guide/components-registration.html)读完。
+
+
+
+
+
+### 通过 Prop 向子组件传递数据
+
+早些时候，我们提到了创建一个博文组件的事情。问题是如果你不能向这个组件传递某一篇博文的标题或内容之类的我们想展示的数据的话，它是没有办法使用的。这也正是 prop 的由来。
+
+Prop 是你可以在组件上注册的一些自定义 attribute。当一个值传递给一个 prop attribute 的时候，它就变成了那个组件实例的一个 property。为了给博文组件传递一个标题，我们可以用一个 `props` 选项将其包含在该组件可接受的 prop 列表中：
+
+```js
+Vue.component('blog-post', {
+  props: ['title'],
+  template: '<h3>{{ title }}</h3>'
+})
+```
+
+一个组件默认可以拥有任意数量的 prop，任何值都可以传递给任何 prop。在上述模板中，你会发现我们能够在组件实例中访问这个值，就像访问 `data` 中的值一样。
+
+一个 prop 被注册之后，你就可以像这样把数据作为一个自定义 attribute 传递进来：
+
+```html
+<blog-post title="My journey with Vue"></blog-post>
+<blog-post title="Blogging with Vue"></blog-post>
+<blog-post title="Why Vue is so fun"></blog-post>
+```
+
+然而在一个典型的应用中，你可能在 `data` 里有一个博文的数组：
+
+```js
+new Vue({
+  el: '#blog-post-demo',
+  data: {
+    posts: [
+      { id: 1, title: 'My journey with Vue' },
+      { id: 2, title: 'Blogging with Vue' },
+      { id: 3, title: 'Why Vue is so fun' }
+    ]
+  }
+})
+```
+
+并想要为每篇博文渲染一个组件：
+
+```html
+<blog-post
+  v-for="post in posts"
+  v-bind:key="post.id"
+  v-bind:title="post.title"
+></blog-post>
+```
+
+
+
+这段代码是 Vue.js 中**循环渲染组件**的典型用法，它的作用是根据数据列表 `posts` 来动态创建和渲染多个 `<blog-post>` 组件实例。
+
+它实现了以下几个核心功能：
+
+1. 列表渲染 (v-for)
+
+`v-for="post in posts"`
+
+- **作用：** 遍历父组件中定义的一个名为 `posts` 的数组。
+- **结果：** 数组中有多少个元素，就会生成多少个 `<blog-post>` 组件实例。
+- **变量：** 在每次迭代中，当前数组元素会被赋值给本地变量 `post`。
+
+
+
+2. 唯一标识 (v-bind:key)
+
+`v-bind:key="post.id"`
+
+（等同于简写 `:key="post.id"`）
+
+- **作用：** 为 `v-for` 循环中的每个组件实例提供一个**唯一且稳定**的标识符。
+- **重要性：** Vue 在进行 DOM 更新时，会使用 `key` 来追踪每个组件的状态。
+  - **如果没有 `key` 或 `key` 不唯一：** 当列表顺序发生变化（如排序、新增、删除）时，Vue 会尝试原地修改元素，可能导致性能下降或组件内部状态（如表单输入）混乱。
+  - **使用 `key`：** Vue 能够高效地识别出哪些组件被添加、删除或重新排序，从而进行正确的 DOM 操作，保证性能和状态的稳定性。
+
+
+
+3. 数据传递 (v-bind:post)
+
+`v-bind:post="post"`
+
+（等同于简写 `:post="post"`）
+
+- **作用：** 这是**父组件向子组件传递数据**（Props）的方式。
+- **具体实现：**
+  - 它将 `v-for` 循环中当前的**单个**博客文章对象 (`post`) 绑定到子组件 `<blog-post>` 的一个名为 `post` 的 **Prop** 上。
+  - 这意味着每个 `<blog-post>` 组件都会接收到它自己对应的那篇博客文章数据，然后才能渲染标题、内容等信息。
+
+
+
+
+
+如上所示，你会发现我们可以使用 `v-bind` 来动态传递 prop。这在你一开始不清楚要渲染的具体内容，比如[从一个 API 获取博文列表](https://codesandbox.io/s/github/vuejs/v2.vuejs.org/tree/master/src/v2/examples/vue-20-component-blog-post-example)的时候，是非常有用的。
+
+到目前为止，关于 prop 你需要了解的大概就这些了，如果你阅读完本页内容并掌握了它的内容，我们会推荐你再回来把 [prop](https://v2.cn.vuejs.org/v2/guide/components-props.html) 读完。
