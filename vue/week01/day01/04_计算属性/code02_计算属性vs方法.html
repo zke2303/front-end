@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="../js/vue.js"></script>
+</head>
+<body>
+    <div id="root">
+        <p>method: {{getDate()}}</p>
+        <p>computed: {{getDate1}}</p>
+    </div>
+    <script>
+        var vm = new Vue({
+            el: "#root",
+            data: {
+            },
+            methods:{
+                getDate:function(){
+                    return Date.now()
+                }
+            },
+            computed:{
+                getDate1:function(){
+                    return Date.now()
+                }
+            }
+        })
+    </script>   
+</body>
+</html>

@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="../js/vue.js"></script>
+</head>
+<body>
+    <div id="root">
+        <p>firstName: <input type="text" v-model="firstName"></p>
+        <p>lastName: <input type="text" v-model="lastName"></p>
+        <p>fullName: {{fullName}}</p>
+    </div>
+    <script>
+        var vm = new Vue({
+            el: "#root",
+            data: {
+                firstName: "yun kai",
+                lastName: "Cao",
+                fullName: 'Cao yun kai'
+            },
+            watch:{
+                firstName: function(val){
+                    this.fullName = val + ' ' + this.lastName
+                },
+                lastName: function(val){
+                    this.fullName = this.firstName + ' ' + val
+                }
+            }
+        })
+    </script>
+    
+</body>
+</html>
